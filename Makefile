@@ -25,6 +25,8 @@ GOBINDATA_BIN=$(OUT_DIR)/go-bindata
 BINDATA=pkg/manifests/bindata.go
 ASSETS=$(shell find assets -name \*.yaml)
 GO=GOARCH=$(GOARCH) GO111MODULE=on GOFLAGS=-mod=vendor go
+# Go command without vendor mode (allows fetching external modules)
+GO_NOVENDOR=GOARCH=$(GOARCH) GO111MODULE=on go
 GO_BUILD_RECIPE=$(GO) build -o $(OUT_DIR)/$(PACKAGE_BIN) -ldflags '-X $(PACKAGE)/version.Version=$(REV)' $(PACKAGE_MAIN)
 GOFMT_CHECK=$(shell find . -not \( \( -wholename './.*' -o -wholename '*/vendor/*' \) -prune \) -name '*.go' | sort -u | xargs gofmt -s -l)
 REV=$(shell git describe --long --tags --match='v*' --always --dirty)
@@ -309,3 +311,10 @@ pao-build-e2e:
 .PHONY: pao-clean-e2e
 pao-clean-e2e:
 	@rm -f _output/e2e-pao*.test
+
+
+.PHONY: cluster-node-tuning-operator-tests-ext
+cluster-node-tuning-operator-tests-ext:
+	@echo "Building cluster-node-tuning-operator-test-ext"
+	@mkdir -p $(OUT_DIR)
+	$(GO_NOVENDOR) build -mod=mod -v -o $(OUT_DIR)/cluster-node-tuning-operator-test-ext ./cmd/cluster-node-tuning-operator-test-ext
